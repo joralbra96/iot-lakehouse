@@ -1,0 +1,27 @@
+# Datos generados (se recrean con data_generator/)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secretos y configuración local: NUNCA al repo
+.env
+*.env
+secrets/
+*.pem
+*.pfx
+local.settings.json
+
+# Databricks / IDE
+.databricks/
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
