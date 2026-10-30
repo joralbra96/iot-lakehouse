@@ -78,9 +78,23 @@ Opciones útiles: `--seed`, `--dup-rate`, `--drift-share`, `--rtc-reset-prob`, `
 ### 2. SQL Server (Semana 1)
 
 Requisitos: SQL Server 2019/2022 (Developer o Express, gratuitos) y SSMS o Azure Data Studio.
-Ejecutar los scripts de `sql/` **en orden** (`00_…` → `07_…`). En `01_load_staging.sql` y
-`07_scd2_merge.sql` hay que ajustar la ruta a la carpeta `data/raw` (debe ser legible por la cuenta
-del servicio de SQL Server).
+Ejecutar los scripts de `sql/` **en orden** (`00_…` → `07_…`), con los datos generados con
+`--days 2` (los scripts cargan 2026-10-01 y 2026-10-02). En `01_load_staging.sql` hay que ajustar
+`@data_path` a la carpeta `data/raw`, que debe ser legible por la cuenta del servicio de SQL Server.
+
+| Script | Qué hace |
+|---|---|
+| `00_create_database.sql` | Base `IoTLakehouse`, esquemas `stg` y `dw` |
+| `01_load_staging.sql` | `BULK INSERT` de los CSV como texto y tipado con `TRY_CONVERT` |
+| `02_deduplicate.sql` | Duplicados exactos y reenvíos con `ROW_NUMBER()` |
+| `03_timestamp_drift.sql` | Detecta deriva (mediana por equipo/hora), marca y corrige `reading_ts` |
+| `04_latest_reading.sql` | Última lectura por equipo (3 métodos) + índice de cobertura |
+| `05_star_schema.sql` | DDL de la estrella, `dim_date` (CTE recursivo) y `dim_pond` |
+| `06_scd2_dim_feeder_merge.sql` | `dim_feeder` como SCD tipo 2 con `MERGE` + `OUTPUT` |
+| `07_load_fact_readings.sql` | `fact_readings` con join *point-in-time* y consultas de ejemplo |
+
+Ejercicios para resolver por cuenta propia: `sql/exercises/week1_exercises.sql`.
+Explicaciones de los conceptos: `docs/week1_sql_concepts.md`.
 
 ## Problemas de datos que se simulan
 
@@ -94,7 +108,7 @@ del servicio de SQL Server).
 
 ## Plan de estudio
 
-- [x] **Semana 1:** SQL avanzado (T-SQL) + Git
+- [ ] **Semana 1:** SQL avanzado (T-SQL) + Git — en curso
 - [ ] **Semana 2:** PySpark, Databricks Free Edition, Delta Lake (medallion)
 - [ ] **Semana 3:** ADLS Gen2, autenticación (SAS, Service Principal, Managed Identity), Key Vault, costos, Unity Catalog
 - [ ] **Semana 4:** Databricks Workflows / conceptos de ADF, GitHub Actions + Databricks Asset Bundles, pytest
