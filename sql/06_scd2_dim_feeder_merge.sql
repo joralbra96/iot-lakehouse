@@ -26,6 +26,9 @@ DROP TABLE IF EXISTS stg.feeder_master;
 SELECT TOP (0) * INTO stg.feeder_master FROM stg.feeder_snapshot_v1;
 GO
 
+SELECT * from stg.feeder_master;
+GO
+
 CREATE OR ALTER PROCEDURE dw.usp_merge_dim_feeder
     @effective_from datetime2(0)
 AS
@@ -106,3 +109,23 @@ SELECT
     SUM(CASE WHEN is_current = 1 THEN 1 ELSE 0 END)          AS current_versions,
     SUM(CASE WHEN valid_to <= valid_from THEN 1 ELSE 0 END)  AS invalid_intervals
 FROM dw.dim_feeder;
+
+SELECT 
+    feeder_key,
+    feeder_id,
+    valid_from,
+    valid_to,
+    is_current,
+    -- Identificar el error específico
+    CASE 
+        WHEN valid_from >= valid_to THEN 'Error: valid_from mayor o igual a valid_to'
+        WHEN is_current = 1 AND valid_to <> '9999-12-31 00:00:00' THEN 'Error: Registro activo con valid_to cerrado'
+        WHEN is_current = 0 AND valid_to = '9999-12-31 00:00:00' THEN 'Error: Registro inactivo con valid_to abierto'
+        ELSE 'Ok'
+    END AS tipo_inconsistencia
+FROM dw.dim_feeder
+WHERE valid_from >= valid_to
+   OR (is_current = 1 AND valid_to <> '9999-12-31 00:00:00')
+   OR (is_current = 0 AND valid_to = '9999-12-31 00:00:00');
+
+Select count(*) from dw.dim_feeder;

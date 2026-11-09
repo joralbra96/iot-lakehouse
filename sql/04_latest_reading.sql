@@ -20,6 +20,8 @@ GO
 
 SET STATISTICS IO ON;
 
+SELECT count(*) from stg.readings_clean;
+
 -- A) ROW_NUMBER: la más usada y la más fácil de explicar
 WITH ranked AS (
     SELECT

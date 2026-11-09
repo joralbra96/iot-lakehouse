@@ -18,6 +18,20 @@ GROUP BY message_id
 HAVING COUNT(*) > 1
 ORDER BY copies DESC;
 
+-- Cuantos valores unicos hay
+Select count(distinct message_id) from stg.readings;
+-- Cuantos valores duplicados hay
+select count(*) - count(distinct message_id) from stg.readings;
+
+Select count(*)
+from(
+    Select message_id, Count(message_id) as copies
+    from stg.readings
+    GROUP BY message_id
+    HAVING Count(message_id) > 1
+) as sub;
+
+
 -- b) Reenvíos por clave de negocio
 SELECT TOP (10)
     feeder_id, device_ts,
@@ -30,7 +44,12 @@ HAVING COUNT(*) > 1
 ORDER BY copies DESC;
 GO
 
+select * from stg.readings
+where feeder_id = 'FD-0108' and device_ts = '2026-10-02 17:50:00';
+
 /* --- ¿En qué horas aparecen los duplicados? -------------------------------
+
+
    CTE (WITH ...): una consulta con nombre que solo vive durante la sentencia
    siguiente. Hace legible una consulta por pasos (como variables en Python).
 
@@ -42,6 +61,14 @@ GO
    Caso borde: tras un reinicio de RTC el equipo reporta desde 2000-01-01,
    así que dos reinicios en días distintos producen el MISMO device_ts.
    Para esas filas se añade el día de recepción a la partición.             */
+
+select TOP(10) * from stg.readings;
+
+-- mi solución
+
+
+
+
 WITH ranked AS (
     SELECT
         r.*,
@@ -55,7 +82,7 @@ WITH ranked AS (
 )
 SELECT
     DATEPART(HOUR, device_ts)                AS hour_of_day,
-    SUM(CASE WHEN rn > 1 THEN 1 ELSE 0 END)  AS duplicates,
+    SUM(CASE WHEN rn > 1 THEN    1 ELSE 0 END)  AS duplicates,
     COUNT(*)                                 AS total_rows
 FROM ranked
 GROUP BY DATEPART(HOUR, device_ts)
@@ -85,6 +112,8 @@ INTO stg.readings_dedup
 FROM ranked
 WHERE rn = 1;
 GO
+
+SELECT count(*) from stg.readings_dedup;
 
 /* Alternativa clásica (destructiva): borrar a través del CTE.
    SQL Server permite DELETE sobre un CTE que referencia una sola tabla.

@@ -121,3 +121,5 @@ GO
 
 SELECT (SELECT COUNT(*) FROM dw.dim_date) AS dim_date_rows,
        (SELECT COUNT(*) FROM dw.dim_pond) AS dim_pond_rows;   -- 730 y 60
+
+SELECT * from stg.feeder_snapshot_v2;

@@ -23,7 +23,7 @@ GO
 WITH lagged AS (
     SELECT feeder_id,
            CAST(received_at AS date)                   AS day_received,
-           DATEDIFF(SECOND, device_ts, received_at)    AS lag_s
+           ABS(DATEDIFF(SECOND, device_ts, received_at))    AS lag_s
     FROM stg.readings_dedup
     WHERE device_ts >= '2020-01-01'
 )
