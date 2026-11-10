@@ -96,19 +96,34 @@ Ejecutar los scripts de `sql/` **en orden** (`00_…` → `07_…`), con los dat
 Ejercicios para resolver por cuenta propia: `sql/exercises/week1_exercises.sql`.
 Explicaciones de los conceptos: `docs/week1_sql_concepts.md`.
 
+### 3. Databricks (Semana 2)
+
+Requisito: una cuenta de Databricks Free Edition. Importa la carpeta `notebooks/` (o conecta el
+repositorio como *Git folder*) y ejecuta en orden:
+
+| Notebook | Qué hace |
+|---|---|
+| `00_setup` | Esquemas `landing`, `bronze`, `silver`, `gold` y el volumen donde se suben los archivos |
+| `01_bronze_ingest` | Auto Loader (incremental e idempotente) de los `.jsonl` + maestros CSV |
+| `02_silver_readings` | Tipado, deduplicación y corrección de timestamps con PySpark + validaciones |
+| `03_gold_model` | `dim_date`, `dim_pond` (SCD1), `dim_feeder` (SCD2 con `MERGE INTO`), `fact_readings` con liquid clustering, `agg_pond_daily` |
+| `transforms` | Funciones de transformación compartidas (se cargan con `%run ./transforms`) |
+
+Ejercicios: `notebooks/exercises/week2_exercises.py`. Conceptos: `docs/week2_pyspark_concepts.md`.
+
 ## Problemas de datos que se simulan
 
 | Problema | Cómo aparece en los datos | Dónde se resuelve |
 |---|---|---|
-| Duplicados exactos | mismo `message_id`, fila idéntica | `sql/02_deduplicate.sql` |
-| Reenvíos | mismo `feeder_id` + `device_ts`, distinto `message_id` / `received_at` (sobre todo fuera de horario de alimentación) | `sql/02_deduplicate.sql` |
-| Deriva de reloj | `device_ts` se adelanta/atrasa respecto a `received_at` (se resincroniza a medianoche) | `sql/03_timestamp_drift.sql` |
+| Duplicados exactos | mismo `message_id`, fila idéntica | `sql/02_deduplicate.sql`, `notebooks/transforms.py` |
+| Reenvíos | mismo `feeder_id` + `device_ts`, distinto `message_id` / `received_at` (sobre todo fuera de horario de alimentación) | `sql/02_deduplicate.sql`, `notebooks/transforms.py` |
+| Deriva de reloj | `device_ts` se adelanta/atrasa respecto a `received_at` (se resincroniza a medianoche) | `sql/03_timestamp_drift.sql`, `notebooks/transforms.py` |
 | Reinicio de RTC | `device_ts` vuelve a 2000-01-01 tras un reinicio | `sql/03_timestamp_drift.sql` |
 | Huecos | lecturas que nunca llegan | `sql/exercises/` |
 
 ## Plan de estudio
 
-- [ ] **Semana 1:** SQL avanzado (T-SQL) + Git — en curso
-- [ ] **Semana 2:** PySpark, Databricks Free Edition, Delta Lake (medallion)
+- [x] **Semana 1:** SQL avanzado (T-SQL) + Git
+- [ ] **Semana 2:** PySpark, Databricks Free Edition, Delta Lake (medallion) — en curso
 - [ ] **Semana 3:** ADLS Gen2, autenticación (SAS, Service Principal, Managed Identity), Key Vault, costos, Unity Catalog
 - [ ] **Semana 4:** Databricks Workflows / conceptos de ADF, GitHub Actions + Databricks Asset Bundles, pytest
