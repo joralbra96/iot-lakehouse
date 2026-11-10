@@ -9,7 +9,9 @@
 
 use IoTLakehouse;
 
-SELECT Top(10) * from stg.readings_clean;
+
+DROP TABLE IF EXISTS #gaps_temp;
+GO
 
 WITH consecutive_ts as (
 	SELECT r.*, 
@@ -23,26 +25,19 @@ gaps as (
 	Select c.feeder_id, c.prev_ts, c.reading_ts, DATEDIFF(MINUTE, c.prev_ts, c.reading_ts) as gap_minutes
 	FROM consecutive_ts as c
 )
-Select TOP(10) * from gaps
+Select * INTO #gaps_temp from gaps
 where gap_minutes > 5;
 
+SELECT * FROM #gaps_temp;
 
 -- TOP10
-WITH consecutive_ts as (
-	SELECT r.*, 
-		LAG(r.reading_ts, 1) OVER (
-			Partition By r.feeder_id
-			order by r.reading_ts
-		) as prev_ts
-	FROM stg.readings_clean as r
-),
-gaps as (
-	Select c.feeder_id, c.prev_ts, c.reading_ts, DATEDIFF(MINUTE, c.prev_ts, c.reading_ts) as gap_minutes
-	FROM consecutive_ts as c
-)
-Select TOP(10) * from gaps
-where gap_minutes > 5
-ORDER BY gap_minutes DESC;
+-- TOP 10 equipos con más minutos perdidos
+SELECT TOP (10)
+    feeder_id,
+    SUM(gap_minutes - 5) AS lost_minutes
+FROM #gaps_temp
+GROUP BY feeder_id
+ORDER BY lost_minutes DESC;
 
 -- "¿Cómo lo explicaría en una entrevista en 2 frases?"
 -- Basicamente se pide una diferencia entre un valor actual y uno anterior, esto lo logro con LAG.
